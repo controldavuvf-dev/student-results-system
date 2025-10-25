@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Download Result - College Name</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        input, button {
+            width: 90%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background: #4285f4;
+            color: white;
+            border: none;
+            cursor: pointer;
+            width: 95%;
+        }
+        button:hover {
+            background: #3367d6;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .download-btn {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .download-btn:hover {
+            background: #218838;
+        }
+        .loading {
+            color: #856404;
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>📚 Download Your Result</h2>
+        <p>Enter your roll number to download your result PDF</p>
+        
+        <input type="text" id="rollNumber" placeholder="Example: 101, 102, etc.">
+        <button onclick="checkResult()">Download Result</button>
+        
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        // REPLACE THIS URL WITH YOUR GOOGLE APPS SCRIPT WEB APP URL
+        const SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID_HERE/exec';
+        
+        async function checkResult() {
+            const rollNumber = document.getElementById('rollNumber').value.trim();
+            const resultDiv = document.getElementById('result');
+            
+            // Validate input
+            if (!rollNumber) {
+                showResult('error', '❌ Please enter a roll number');
+                return;
+            }
+            
+            // Show loading message
+            showResult('loading', '🔍 Searching for your result... Please wait');
+            
+            try {
+                // Send request to Google Apps Script
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'rollNumber=' + encodeURIComponent(rollNumber)
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    showResult('success', 
+                        '✅ Result found!<br>' + 
+                        '<a href="' + data.downloadUrl + '" class="download-btn" target="_blank">📥 Download PDF</a>' +
+                        '<br><small>Click the button above to download your result</small>'
+                    );
+                } else {
+                    showResult('error', '❌ ' + data.message);
+                }
+                
+            } catch (error) {
+                showResult('error', '❌ Network error. Please check your internet connection and try again.');
+            }
+        }
+        
+        function showResult(type, message) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = message;
+            resultDiv.className = 'result ' + type;
+            resultDiv.style.display = 'block';
+        }
+        
+        // Allow pressing Enter key to submit
+        document.getElementById('rollNumber').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkResult();
+            }
+        });
+    </script>
+</body>
+</html>
